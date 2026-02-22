@@ -16,20 +16,30 @@ export default function ConnectDevice({ onConnect }) {
         <div className="panel">
             <h2 className="panel-title">Enlazar dispositivo ESP32-CAM</h2>
             <div className="form">
+                <label htmlFor="ip-input" className="input-label">
+                    IP del dispositivo
+                </label>
                 <input
+                    id="ip-input"
                     className="input"
                     type="text"
-                    placeholder="IP del dispositivo"
+                    placeholder="192.168.1.100"
                     value={ip}
                     onChange={e => {
                         setIp(e.target.value);
                         setError('');
                     }}
+                    aria-invalid={error ? 'true' : 'false'}
+                    aria-describedby={error ? 'ip-error' : undefined}
                 />
                 <button className="button" onClick={handleConnect}>
                     Conectar
                 </button>
-                {error && <span className="error">{error}</span>}
+                {error && (
+                    <span id="ip-error" className="error" role="alert">
+                        {error}
+                    </span>
+                )}
             </div>
         </div>
     );

@@ -163,6 +163,14 @@ a {
     padding: 10px 12px;
     outline: none;
 }
+/* CSS de label inicio*/
+.input-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #d1d5db;
+    font-weight: 500;
+}
 
 .button {
     background: var(--accent);
@@ -281,14 +289,6 @@ a {
         grid-template-columns: 1fr;
     }
 
-    .app-shell:has(.sidebar:hover) {
-        grid-template-columns: 1fr;
-    }
-
-    .app-shell:has(.sidebar:focus-within) {
-        grid-template-columns: 1fr;
-    }
-
     .sidebar {
         position: fixed;
         z-index: 30;
@@ -297,6 +297,7 @@ a {
         top: 0;
         width: 0;
         border-right: none;
+        transition: width 200ms ease;
     }
 
     .sidebar.open {
@@ -316,20 +317,22 @@ a {
         padding-left: 0;
     }
 
-    .sidebar-hint {
-        display: block;
-    }
-
-    .mobile-menu-btn {
-        display: inline-flex;
-    }
-
     .sidebar-overlay {
         display: block;
         position: fixed;
         inset: 0;
         background: rgba(2, 6, 23, 0.4);
         z-index: 25;
+        animation: fadeIn 200ms ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
 }
 
