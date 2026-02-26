@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IconSettings, IconChangeIp, IconDisconnect, IconStatus, IconMenu } from './Icons';
 
-export default function Layout({ children, deviceIp, onConnect, onDisconnect }) {
+export default function Layout({ children, deviceIp, onConnect, onDisconnect, onLogout, user }) {
     const [showIpModal, setShowIpModal] = useState(false);
     const [tempIp, setTempIp] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -103,6 +103,12 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect }) 
                                     <button className="nav-item danger" onClick={disconnect}>
                                         <IconDisconnect />
                                         <span className="nav-text">Desconectar</span>
+                                    </button>
+                                )}
+                                {onLogout && (
+                                    <button className="nav-item" onClick={onLogout}>
+                                        <span style={{ fontSize: 18 }}>⏻</span>
+                                        <span className="nav-text">Cerrar sesión</span>
                                     </button>
                                 )}
                             </div>
