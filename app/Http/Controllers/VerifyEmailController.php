@@ -15,7 +15,7 @@ class VerifyEmailController extends Controller
         }
 
         $user = User::findOrFail($id);
-
+        // Ensure the hash matches the user's email
         if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
             return redirect('/?verified=0');
         }

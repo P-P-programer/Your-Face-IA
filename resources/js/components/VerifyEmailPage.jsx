@@ -6,6 +6,7 @@ export default function VerifyEmailPage() {
     const navigate = useNavigate();
     const [message, setMessage] = useState('Verificando correo...');
     const [success, setSuccess] = useState(null);
+    const [processing, setProcessing] = useState(true);
 
     useEffect(() => {
         const verify = async () => {
@@ -26,6 +27,8 @@ export default function VerifyEmailPage() {
             } catch (err) {
                 setMessage('Error de red');
                 setSuccess(false);
+            } finally {
+                setProcessing(false);
             }
         };
 
@@ -38,7 +41,7 @@ export default function VerifyEmailPage() {
             <p style={{ color: success ? '#34d399' : '#ef4444' }}>
                 {message}
             </p>
-            {success && (
+            {success && !processing && (
                 <button
                     className="button"
                     onClick={() => navigate('/login')}
@@ -46,6 +49,9 @@ export default function VerifyEmailPage() {
                 >
                     Ir al Login
                 </button>
+            )}
+            {processing && (
+                <p style={{ color: '#94a3b8' }}>Por favor espera...</p>
             )}
         </div>
     );

@@ -67,4 +67,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new VerifyEmailQueued());
     }
+
+    public function connections()
+    {
+        return $this->hasMany(Connection::class);
+    }
 }

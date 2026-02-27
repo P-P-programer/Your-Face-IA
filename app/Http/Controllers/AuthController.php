@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Connection;
 use App\Models\UserStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -72,6 +73,27 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // Invalida todos los tokens anteriores
+        $user->tokens()->delete();
+
+        // Registra desconexión del dispositivo anterior
+        Connection::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update([
+                'disconnected_at' => now(),
+                'status' => 'disconnected',
+            ]);
+
+        // Registra nueva conexión
+        Connection::create([
+            'user_id' => $user->id,
+            'device_ip' => $request->ip(),
+            'device_type' => $this->detectDeviceType($request->userAgent()),
+            'user_agent' => $request->userAgent(),
+            'connected_at' => now(),
+            'status' => 'active',
+        ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -82,6 +104,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Registra desconexión
+        Connection::where('user_id', $request->user()->id)
+            ->where('status', 'active')
+            ->update([
+                'disconnected_at' => now(),
+                'status' => 'disconnected',
+            ]);
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -92,5 +122,15 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    private function detectDeviceType($userAgent)
+    {
+        if (preg_match('/Mobile|Android|iPhone/', $userAgent)) {
+            return 'mobile';
+        } elseif (preg_match('/Tablet|iPad/', $userAgent)) {
+            return 'tablet';
+        }
+        return 'desktop';
     }
 }

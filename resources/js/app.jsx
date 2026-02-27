@@ -6,6 +6,8 @@ import ConnectDevice from './components/ConnectDevice';
 import Dashboard from './components/Dashboard';
 import AuthPage from './components/AuthPage';
 import VerifyEmailPage from './components/VerifyEmailPage';
+import ConnectionsList from './components/ConnectionsList';
+import AdminConnections from './components/AdminConnections';
 import './bootstrap';
 import '../css/app.css';
 
@@ -85,6 +87,10 @@ function App() {
                                             <Dashboard deviceIp={deviceIp} />
                                         )
                                     } />
+                                    <Route path="/connections" element={<ConnectionsList user={user} />} />
+                                    {user.role === 'superadmin' && (
+                                        <Route path="/admin/connections" element={<AdminConnections />} />
+                                    )}
                                 </Routes>
                             </Layout>
                         }

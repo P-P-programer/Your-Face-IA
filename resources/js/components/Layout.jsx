@@ -1,216 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import { IconSettings, IconChangeIp, IconDisconnect, IconStatus, IconMenu } from './Icons';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+    IconSettings, 
+    IconChangeIp, 
+    IconDisconnect, 
+    IconStatus, 
+    IconMenu,
+    IconHome,
+    IconHistory,
+    IconShield,
+    IconLogout,
+    IconLogo
+} from './Icons';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function Layout({ children, deviceIp, onConnect, onDisconnect, onLogout, user }) {
-    const [showIpModal, setShowIpModal] = useState(false);
-    const [tempIp, setTempIp] = useState('');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [dialog, setDialog] = useState(null);
-    const [error, setError] = useState('');
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const showConfirmation = (title, message, onConfirm) => {
-        setDialog({ title, message, onConfirm });
-    };
-
-    const confirmAction = () => {
-        if (dialog?.onConfirm) {
-            dialog.onConfirm();
-        }
-        setDialog(null);
-    };
-
-    const openIpModal = () => {
-        setTempIp(deviceIp);
-        setShowIpModal(true);
-        setIsSidebarOpen(false);
-    };
-
-    const saveIp = () => {
-        if (!tempIp.trim()) {
-            setError('La IP no puede estar vacía');
-            return;
-        }
-        showConfirmation(
-            'Cambiar IP',
-            `¿Cambiar a ${tempIp}?`,
-            () => {
-                onConnect(tempIp.trim());
-                setShowIpModal(false);
-                setError('');
-            }
-        );
-    };
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState(null);
+    const location = useLocation();
 
     const disconnect = () => {
-        showConfirmation(
-            'Desconectar',
-            '¿Desconectar del dispositivo?',
-            () => {
+        setConfirmDialog({
+            title: 'Desconectar dispositivo',
+            message: '¿Estás seguro de desconectar el dispositivo ESP32-CAM?',
+            onConfirm: () => {
                 onDisconnect();
-                setIsSidebarOpen(false);
-            }
-        );
+                setSidebarOpen(false);
+                setConfirmDialog(null);
+            },
+            onCancel: () => setConfirmDialog(null),
+        });
     };
 
-    const openSettings = () => {
-        showConfirmation(
-            'Ajustes',
-            'Función en desarrollo',
-            () => {
-                setIsSidebarOpen(false);
-            }
-        );
+    const changeIp = () => {
+        setConfirmDialog({
+            title: 'Cambiar IP',
+            message: '¿Cambiar la IP del dispositivo ESP32-CAM?',
+            onConfirm: () => {
+                onConnect('');
+                setSidebarOpen(false);
+                setConfirmDialog(null);
+            },
+            onCancel: () => setConfirmDialog(null),
+        });
     };
 
-    const hasSidebarContent = deviceIp || true;
+    const logout = () => {
+        setConfirmDialog({
+            title: 'Cerrar sesión',
+            message: '¿Estás seguro de cerrar tu sesión?',
+            onConfirm: () => {
+                onLogout();
+                setSidebarOpen(false);
+                setConfirmDialog(null);
+            },
+            onCancel: () => setConfirmDialog(null),
+        });
+    };
+
+    const isActive = (path) => location.pathname === path;
 
     return (
         <div className="app-shell">
-            {hasSidebarContent && (
-                <>
-                    <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`} tabIndex={0}>
-                        <div className="sidebar-inner">
-                            <nav className="nav">
-                                {deviceIp && (
-                                    <div className="nav-item" onClick={openIpModal}>
-                                        <IconChangeIp />
-                                        <span className="nav-text">Cambiar IP</span>
-                                    </div>
-                                )}
-                                <div className="nav-item" onClick={openSettings}>
-                                    <IconSettings />
-                                    <span className="nav-text">Ajustes</span>
-                                </div>
-                            </nav>
-
-                            <div className="sidebar-bottom">
-                                {deviceIp && (
-                                    <div className="nav-item">
-                                        <IconStatus />
-                                        <span className="nav-text">ESP32-CAM • {deviceIp}</span>
-                                    </div>
-                                )}
-                                {deviceIp && (
-                                    <button className="nav-item danger" onClick={disconnect}>
-                                        <IconDisconnect />
-                                        <span className="nav-text">Desconectar</span>
-                                    </button>
-                                )}
-                                {onLogout && (
-                                    <button className="nav-item" onClick={onLogout}>
-                                        <span style={{ fontSize: 18 }}>⏻</span>
-                                        <span className="nav-text">Cerrar sesión</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        
-                        
-                    </aside>
-
-                    {isSidebarOpen && (
-                        <div
-                            className="sidebar-overlay"
-                            onClick={() => setIsSidebarOpen(false)}
-                        />
-                    )}
-                </>
+            {sidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={() => setSidebarOpen(false)}
+                />
             )}
 
-            <div className="content">
-                <header className="header">
-                    <div className="header-brand">
-                        <span className="brand-dot" />
-                        <span>Your Face IA</span>
+            <button
+                className="mobile-menu-button"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label="Toggle menu"
+                style={{ opacity: sidebarOpen ? 0 : 1, pointerEvents: sidebarOpen ? 'none' : 'auto' }}
+            >
+                <IconMenu />
+            </button>
+
+            <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
+                <div className="sidebar-content">
+                    <div className="logo">
+                        <IconLogo />
+                        <span className="logo-text">Your Face IA</span>
                     </div>
 
-                    <div className="header-actions">
-                        {hasSidebarContent && isMobile && (
-                            <button
-                                className="mobile-menu-btn"
-                                onClick={() => setIsSidebarOpen(s => !s)}
-                                aria-label="Abrir menú"
+                    <nav className="nav">
+                        <Link 
+                            to="/" 
+                            className={`nav-item ${isActive('/') ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <IconHome />
+                            <span className="nav-text">Inicio</span>
+                        </Link>
+
+                        <Link 
+                            to="/connections" 
+                            className={`nav-item ${isActive('/connections') ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <IconHistory />
+                            <span className="nav-text">Mi Historial</span>
+                        </Link>
+
+                        {user?.role === 'superadmin' && (
+                            <Link 
+                                to="/admin/connections" 
+                                className={`nav-item ${isActive('/admin/connections') ? 'active' : ''}`}
+                                onClick={() => setSidebarOpen(false)}
                             >
-                                <IconMenu />
+                                <IconShield />
+                                <span className="nav-text">Auditoría Admin</span>
+                            </Link>
+                        )}
+
+                        {deviceIp && (
+                            <button 
+                                className="nav-item" 
+                                onClick={changeIp}
+                            >
+                                <IconChangeIp />
+                                <span className="nav-text">Cambiar IP</span>
                             </button>
                         )}
 
-                        <span className="status-pill">
-                            <span className="status-dot" />
-                            {deviceIp ? `Conectado: ${deviceIp}` : 'Desconectado'}
-                        </span>
-                    </div>
-                </header>
+                        <button 
+                            className="nav-item" 
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <IconSettings />
+                            <span className="nav-text">Configuración</span>
+                        </button>
+                    </nav>
 
-                <main className="container">
+                    <div className="sidebar-bottom">
+                        {deviceIp && (
+                            <div className="nav-item">
+                                <IconStatus />
+                                <span className="nav-text">ESP32-CAM • {deviceIp}</span>
+                            </div>
+                        )}
+                        {deviceIp && (
+                            <button className="nav-item danger" onClick={disconnect}>
+                                <IconDisconnect />
+                                <span className="nav-text">Desconectar</span>
+                            </button>
+                        )}
+                        {onLogout && (
+                            <button className="nav-item" onClick={logout}>
+                                <IconLogout />
+                                <span className="nav-text">Cerrar sesión</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </aside>
+
+            <main className="main-content">
+                <div className="container">
                     {children}
-                </main>
-            </div>
-
-            {/* Modal Cambiar IP */}
-            {showIpModal && (
-                <div className="modal-backdrop" onClick={() => setShowIpModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3 style={{ margin: 0 }}>Cambiar IP</h3>
-                            <button className="button" onClick={() => setShowIpModal(false)}>
-                                Cerrar
-                            </button>
-                        </div>
-                        <div className="form">
-                            <input
-                                className="input"
-                                type="text"
-                                placeholder="Nueva IP"
-                                value={tempIp}
-                                onChange={e => {
-                                    setTempIp(e.target.value);
-                                    setError('');
-                                }}
-                            />
-                            {error && <span className="error">{error}</span>}
-                            <button className="button" onClick={saveIp}>
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            )}
+            </main>
 
-            {/* Modal Confirmación */}
-            {dialog && (
-                <div className="modal-backdrop" onClick={() => setDialog(null)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3 style={{ margin: 0 }}>{dialog.title}</h3>
-                        </div>
-                        <p style={{ margin: '12px 0', color: 'var(--text)' }}>
-                            {dialog.message}
-                        </p>
-                        <div className="form" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                            <button className="button" onClick={() => setDialog(null)}>
-                                Cancelar
-                            </button>
-                            <button
-                                className="button"
-                                style={{ background: '#10b981' }}
-                                onClick={confirmAction}
-                            >
-                                Confirmar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={confirmDialog.onCancel}
+                />
             )}
         </div>
     );
