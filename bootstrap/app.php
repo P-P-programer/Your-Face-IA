@@ -13,8 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\App\Http\Middleware\ThrottleVerification::class);
+
+        //  Registrar middleware personalizado
+        $middleware->alias([
+            'api.token' => \App\Http\Middleware\CheckApiToken::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->create();
+    })->create();

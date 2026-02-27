@@ -8,6 +8,7 @@ import AuthPage from './components/AuthPage';
 import VerifyEmailPage from './components/VerifyEmailPage';
 import ConnectionsList from './components/ConnectionsList';
 import AdminConnections from './components/AdminConnections';
+import DevicesList from './components/DevicesList';
 import './bootstrap';
 import '../css/app.css';
 
@@ -88,6 +89,7 @@ function App() {
                                         )
                                     } />
                                     <Route path="/connections" element={<ConnectionsList user={user} />} />
+                                    <Route path="/devices" element={<DevicesList user={user} />} />
                                     {user.role === 'superadmin' && (
                                         <Route path="/admin/connections" element={<AdminConnections />} />
                                     )}

@@ -96,6 +96,15 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect, on
                         </Link>
 
                         <Link 
+                            to="/devices" 
+                            className={`nav-item ${isActive('/devices') ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <IconStatus />
+                            <span className="nav-text">Mis Dispositivos</span>
+                        </Link>
+
+                        <Link 
                             to="/connections" 
                             className={`nav-item ${isActive('/connections') ? 'active' : ''}`}
                             onClick={() => setSidebarOpen(false)}

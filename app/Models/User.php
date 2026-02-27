@@ -68,6 +68,16 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new VerifyEmailQueued());
     }
 
+    public function detections()
+    {
+        return $this->hasMany(Detection::class);
+    }
+
+    public function devices()
+    {
+        return $this->hasMany(DeviceRegistration::class);
+    }
+
     public function connections()
     {
         return $this->hasMany(Connection::class);
