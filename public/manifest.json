@@ -1,24 +1,20 @@
 {
   "name": "Your Face IA",
-  "short_name": "Your Face",
-  "description": "Sistema de detección de rostros con ESP32-CAM",
+  "short_name": "YourFace",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#10b981",
-  "scope": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
