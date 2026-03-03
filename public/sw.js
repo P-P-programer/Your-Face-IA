@@ -1,49 +1,38 @@
 // filepath: c:\Users\felip\Desktop\proyectos\Your-Face\public\sw.js
-const CACHE_NAME = 'your-face-v1';
+const CACHE_NAME = 'your-face-v2';
 
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.add('/');  // Solo cachea el HTML principal
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.add('/'))
   );
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
-  // No cachear API calls
-  if (event.request.url.includes('/api/')) {
-    return event.respondWith(fetch(event.request));
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      // Cache first, then network
-      return response || fetch(event.request).then(res => {
-        if (!res || res.status !== 200) return res;
-        
-        // Cachear dinámicamente
-        const cache = caches.open(CACHE_NAME);
-        cache.then(c => c.put(event.request, res.clone()));
-        return res;
-      });
-    }).catch(() => {
-      return caches.match('/');
-    })
-  );
-});
-
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+    )
   );
   self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  if (event.request.url.includes('/api/')) return;
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(event.request).then((networkResponse) => {
+        // clonar ANTES de usarla
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+        return networkResponse;
+      });
+    })
+  );
 });
