@@ -1,1 +1,35 @@
-name: Auto PR\n\non:\n  push:\n    branches:\n      - dev\n\njobs:\n  create-pr:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Create PR via github.rest\n        env:\n          GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}\n        run: |\n          const { data: pullRequests } = await github.rest.pulls.list({\n            owner: context.repo.owner,\n            repo: context.repo.repo,\n            head: `${context.repo.owner}:dev`,\n            base: 'main'\n          });\n          console.log(pullRequests);\n          // Additional logic to create PR if needed\n\n        # Removed unnecessary checkout step\n
+name: Auto PR dev -> main
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or keep PR dev->main
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GH_PERSONAL_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const head = `${owner}:dev`;
+            const base = "main";
+
+            const existing = await github.rest.pulls.list({
+              owner, repo, state: "open", head, base
+            });
+
+            if (existing.data.length === 0) {
+              const pr = await github.rest.pulls.create({
+                owner, repo,
+                head: "dev",
+                base: "main",
+                title: "chore: merge dev into main",
+                body: "PR automático creado al hacer push en dev."
+              });
+              core.info(`PR creado: #${pr.data.number}`);
+            } else {
+              core.info("Ya existe un PR abierto dev -> main.");
+            }
