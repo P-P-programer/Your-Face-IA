@@ -11,11 +11,18 @@ export default function AuthPage({ onAuth }) {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const verified = params.get('verified');
+        const reason = params.get('reason');
 
         if (verified === '1') {
             setVerifiedMessage('✅ Correo verificado. Ya puedes iniciar sesión.');
         } else if (verified === '0') {
             setVerifiedMessage('❌ Verificación inválida o expirada.');
+        }
+
+        if (reason === 'inactive') {
+            setError('Sesión expirada por inactividad. Inicia sesión de nuevo.');
+        } else if (reason === 'expired') {
+            setError('Tu sesión ha expirado. Inicia sesión de nuevo.');
         }
     }, []);
 
@@ -28,25 +35,37 @@ export default function AuthPage({ onAuth }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setMessage('');
         setLoading(true);
 
+        const endpoint = mode === 'login' ? '/api/login' : '/api/register';
+
         try {
-            const res = await fetch('/api/login', {
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ email: form.email, password: form.password }),
+                body: JSON.stringify(form),
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data?.message || 'Credenciales inválidas');
+                setError(data?.message || 'Error en la solicitud');
                 return;
             }
 
+            // Si es registro exitoso
+            if (mode === 'register') {
+                setMessage('✅ Cuenta creada. Revisa tu email para verificarla.');
+                setForm({ name: '', email: '', password: '' });
+                setTimeout(() => setMode('login'), 3000);
+                return;
+            }
+
+            // Si es login exitoso
             const token = data?.access_token || data?.token;
             const tokenType = data?.token_type || 'Bearer';
             const user = data?.user;
@@ -58,11 +77,11 @@ export default function AuthPage({ onAuth }) {
 
             onAuth(token, user, tokenType);
 
-            // hard redirect para evitar quedarse “pegado” en login
+            // Redirección forzada después del login
             window.location.href = user.role === 'super_admin'
                 ? '/admin/token-requests'
                 : '/';
-        } catch {
+        } catch (err) {
             setError('Error de red');
         } finally {
             setLoading(false);
@@ -75,22 +94,36 @@ export default function AuthPage({ onAuth }) {
                 {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
             </h2>
 
-            <div className="form" style={{ gridAutoFlow: 'column', gap: 8, marginBottom: 16 }}>
+            <div className="form" style={{ display: 'grid', gridAutoFlow: 'column', gap: 8, marginBottom: 16 }}>
                 <button
                     className="button"
                     style={{ background: mode === 'login' ? '#10b981' : '#0f172a' }}
-                    onClick={() => setMode('login')}
+                    onClick={() => {
+                        setMode('login');
+                        setError('');
+                        setMessage('');
+                    }}
                 >
                     Login
                 </button>
                 <button
                     className="button"
                     style={{ background: mode === 'register' ? '#10b981' : '#0f172a' }}
-                    onClick={() => setMode('register')}
+                    onClick={() => {
+                        setMode('register');
+                        setError('');
+                        setMessage('');
+                    }}
                 >
                     Registro
                 </button>
             </div>
+
+            {verifiedMessage && (
+                <div style={{ color: '#34d399', marginBottom: 12, padding: 12, background: '#0f172a', borderRadius: 4 }}>
+                    {verifiedMessage}
+                </div>
+            )}
 
             <form className="form" onSubmit={handleSubmit}>
                 {mode === 'register' && (
@@ -102,6 +135,7 @@ export default function AuthPage({ onAuth }) {
                             type="text"
                             value={form.name}
                             onChange={e => update('name', e.target.value)}
+                            required={mode === 'register'}
                         />
                     </>
                 )}
@@ -113,6 +147,7 @@ export default function AuthPage({ onAuth }) {
                     type="email"
                     value={form.email}
                     onChange={e => update('email', e.target.value)}
+                    required
                 />
 
                 <label className="input-label" htmlFor="password">Contraseña</label>
@@ -122,21 +157,16 @@ export default function AuthPage({ onAuth }) {
                     type="password"
                     value={form.password}
                     onChange={e => update('password', e.target.value)}
+                    required
                 />
 
                 <button className="button" type="submit" disabled={loading}>
-                    {loading ? 'Procesando...' : 'Continuar'}
+                    {loading ? 'Procesando...' : (mode === 'login' ? 'Iniciar Sesión' : 'Registrarse')}
                 </button>
 
                 {error && <span className="error" role="alert">{error}</span>}
                 {message && <span style={{ color: '#34d399' }}>{message}</span>}
             </form>
-
-            {verifiedMessage && (
-                <div style={{ color: '#34d399', marginBottom: 12 }}>
-                    {verifiedMessage}
-                </div>
-            )}
         </div>
     );
 }
