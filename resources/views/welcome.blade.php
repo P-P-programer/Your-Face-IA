@@ -26,29 +26,6 @@
 </head>
 <body style="margin:0; padding:0; font-family:sans-serif;">
     <div id="app"></div>
-    
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(reg => {
-                console.log('Service Worker registrado:', reg);
-                
-                // Forzar actualización del SW
-                reg.update();
-                
-                // Si hay una nueva versión esperando, activarla
-                reg.addEventListener('updatefound', () => {
-                    const newWorker = reg.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('Nueva versión disponible, recargando...');
-                            window.location.reload();
-                        }
-                    });
-                });
-            }).catch(err => {
-                console.error('Error registrando Service Worker:', err);
-            });
-        }
-    </script>
+    {{-- Sin script inline de SW: se registra en app.jsx --}}
 </body>
 </html>
