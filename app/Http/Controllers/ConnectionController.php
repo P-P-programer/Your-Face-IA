@@ -18,25 +18,18 @@ class ConnectionController extends Controller
     }
 
     // Superadmin ve todas las conexiones
-    public function allConnections(Request $request)
+    public function allConnections()
     {
-        if ($request->user()->role !== 'superadmin') {
-            return response()->json([
-                'message' => 'No autorizado. Solo superadmin puede ver esto.'
-            ], 403);
-        }
-
-        $connections = Connection::with('user:id,name,email')
-            ->orderByDesc('connected_at')
-            ->paginate(50);
-
+        // NO DEBE HABER validación adicional de rol aquí
+        // El middleware ya lo protege
+        $connections = Connection::with('user')->latest()->get();
         return response()->json($connections);
     }
 
     // Superadmin ve conexiones de un usuario específico
     public function userConnections(Request $request, $userId)
     {
-        if ($request->user()->role !== 'superadmin') {
+        if ($request->user()->role !== 'super_admin') {
             return response()->json([
                 'message' => 'No autorizado.'
             ], 403);
@@ -52,7 +45,7 @@ class ConnectionController extends Controller
     // Desconectar un dispositivo activo (superadmin)
     public function disconnectDevice(Request $request, $connectionId)
     {
-        if ($request->user()->role !== 'superadmin') {
+        if ($request->user()->role !== 'super_admin') {
             return response()->json([
                 'message' => 'No autorizado.'
             ], 403);

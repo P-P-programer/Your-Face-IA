@@ -9,3 +9,7 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/{any}', function () {
+    return view('welcome'); // cambia 'app' por 'welcome'
+})->where('any', '.*');

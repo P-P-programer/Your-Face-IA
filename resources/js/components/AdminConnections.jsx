@@ -1,23 +1,51 @@
 import React, { useEffect, useState } from 'react';
+import { getAuthHeader, clearSession } from '../lib/session';
 
 export default function AdminConnections() {
     const [connections, setConnections] = useState([]);
     const [loading, setLoading] = useState(true);
-    const token = localStorage.getItem('auth_token');
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchAllConnections();
+        loadConnections();
     }, []);
 
-    const fetchAllConnections = async () => {
+    const loadConnections = async () => {
         try {
+            setLoading(true);
+            setError('');
+            
+            const authHeader = getAuthHeader();
+            if (!authHeader) {
+                setError('No autenticado.');
+                return;
+            }
+
             const res = await fetch('/api/connections/all', {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: authHeader,
+                    Accept: 'application/json',
+                },
             });
-            const data = await res.json();
-            setConnections(data.data || data);
+
+            if (res.status === 401) {
+                clearSession();
+                window.location.href = '/login?reason=expired';
+                return;
+            }
+
+            if (res.status === 403) {
+                setError('No autorizado para auditoría admin.');
+                setConnections([]);
+                return;
+            }
+
+            const json = await res.json();
+            const rows = Array.isArray(json) ? json : (Array.isArray(json?.data) ? json.data : []);
+            setConnections(rows);
         } catch (err) {
-            console.error('Error:', err);
+            setError('Error cargando conexiones.');
+            setConnections([]);
         } finally {
             setLoading(false);
         }
@@ -29,11 +57,11 @@ export default function AdminConnections() {
         try {
             const res = await fetch(`/api/connections/${connectionId}/disconnect`, {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: getAuthHeader() },
             });
             
             if (res.ok) {
-                fetchAllConnections();
+                loadConnections();
             }
         } catch (err) {
             console.error('Error:', err);
@@ -44,8 +72,9 @@ export default function AdminConnections() {
 
     return (
         <div className="panel">
-            <h2 className="panel-title"> Auditoría de Conexiones</h2>
+            <h2 className="panel-title">Auditoría de Conexiones</h2>
             
+            {error && <p className="text-red-500">{error}</p>}
             {connections.length === 0 ? (
                 <p>No hay conexiones</p>
             ) : (

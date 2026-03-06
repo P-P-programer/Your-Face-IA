@@ -55,7 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'superadmin';
+        return $this->role === 'super_admin';
     }
 
     public function statuses()
@@ -81,5 +81,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function connections()
     {
         return $this->hasMany(Connection::class);
+    }
+
+    public function deviceTokenRequests()
+    {
+        return $this->hasMany(DeviceTokenRequest::class);
+    }
+
+    public function tokenRevocationRequests()
+    {
+        return $this->hasMany(TokenRevocationRequest::class);
+    }
+
+    public function apiTokens()
+    {
+        return $this->hasMany(ApiToken::class);
+    }
+
+    public function activeApiTokens()
+    {
+        return $this->apiTokens()->active();
     }
 }

@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //  Registrar middleware personalizado
         $middleware->alias([
             'api.token' => \App\Http\Middleware\CheckApiToken::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
