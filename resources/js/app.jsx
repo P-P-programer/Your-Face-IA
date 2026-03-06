@@ -20,8 +20,22 @@ import { clearSession, getAuthHeader, getToken, getUser, saveSession } from './l
 
 function App() {
     const [deviceIp, setDeviceIp] = useState('');
-    const [token, setToken] = useState(getToken());
-    const [user, setUser] = useState(getUser());
+    const [token, setToken] = useState(() => {
+        const t = localStorage.getItem('token');
+        console.log('🔑 [INIT] Token desde localStorage:', t ? t.substring(0, 20) + '...' : 'null');
+        return t;
+    });
+    const [user, setUser] = useState(() => {
+        const raw = localStorage.getItem('user');
+        const u = raw ? JSON.parse(raw) : null;
+        console.log('👤 [INIT] User desde localStorage:', u?.email || 'null', '| Role:', u?.role || 'null');
+        return u;
+    });
+    const [tokenType, setTokenType] = useState(() => {
+        const tt = localStorage.getItem('token_type') || 'Bearer';
+        console.log('🎫 [INIT] Token type:', tt);
+        return tt;
+    });
     const [checking, setChecking] = useState(true);
 
     useEffect(() => {
@@ -74,14 +88,27 @@ function App() {
     //   };
     // }, [token]);
 
-    const handleAuth = (newToken, userData, tokenType = 'Bearer') => {
-        saveSession({
-            access_token: newToken,
-            token_type: tokenType,
-            user: userData,
+    const handleAuth = (newToken, newUser, newTokenType = 'Bearer') => {
+        console.log('📥 [handleAuth] Recibiendo:', { 
+            token: newToken?.substring(0, 20) + '...', 
+            user: newUser?.email, 
+            role: newUser?.role 
         });
+
         setToken(newToken);
-        setUser(userData);
+        setUser(newUser);
+        setTokenType(newTokenType);
+
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem('token_type', newTokenType);
+
+        console.log('💾 [handleAuth] Guardado en localStorage');
+
+        // Configurar axios con el nuevo token
+        window.axios.defaults.headers.common['Authorization'] = `${newTokenType} ${newToken}`;
+
+        console.log('🔧 [handleAuth] Axios configurado con nuevo token');
     };
 
     const handleLogout = async (expired = false) => {
