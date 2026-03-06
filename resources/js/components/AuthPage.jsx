@@ -25,43 +25,25 @@ export default function AuthPage({ onAuth }) {
         setMessage('');
     };
 
-    const handleSubmit = async e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (loading) return;
-
-        setLoading(true);
         setError('');
-        setMessage('');
+        setLoading(true);
 
         try {
-            const url = mode === 'login' ? '/api/login' : '/api/register';
-            const payload = mode === 'login'
-                ? { email: form.email, password: form.password }
-                : { name: form.name, email: form.email, password: form.password };
-
-            const res = await fetch(url, {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ email: form.email, password: form.password }),
             });
 
-            const isJson = res.headers.get('content-type')?.includes('application/json');
-            const data = isJson ? await res.json() : null;
+            const data = await res.json();
 
             if (!res.ok) {
-                const validationMsg = data?.errors
-                    ? Object.values(data.errors).flat().join(' ')
-                    : null;
-
-                setError(validationMsg || data?.message || 'Error al autenticar');
-                return;
-            }
-
-            if (mode === 'register') {
-                setMessage('Registro exitoso. Revisa tu email para verificar.');
+                setError(data?.message || 'Credenciales inválidas');
                 return;
             }
 
@@ -70,11 +52,16 @@ export default function AuthPage({ onAuth }) {
             const user = data?.user;
 
             if (!token || !user) {
-                setError('Respuesta de login inválida.');
+                setError('Respuesta de login inválida');
                 return;
             }
 
             onAuth(token, user, tokenType);
+
+            // hard redirect para evitar quedarse “pegado” en login
+            window.location.href = user.role === 'super_admin'
+                ? '/admin/token-requests'
+                : '/';
         } catch {
             setError('Error de red');
         } finally {

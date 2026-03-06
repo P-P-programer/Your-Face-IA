@@ -152,6 +152,7 @@ function App() {
                 ) : (
                     <Route path="/*" element={<AuthPage onAuth={handleAuth} />} />
                 )}
+                <Route path="/login" element={<AuthPage onAuth={handleAuth} />} />
                 <Route path="/403" element={<ForbiddenPage />} />
             </Routes>
         </BrowserRouter>
