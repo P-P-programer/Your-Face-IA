@@ -48,31 +48,31 @@ function App() {
         checkSession();
     }, [token]);
 
-    // Auto logout por inactividad (30 min)
-    useEffect(() => {
-        if (!token) return;
-        const TIMEOUT_MS = 30 * 60 * 1000;
-        let timer = null;
-
-        const reset = () => {
-            clearTimeout(timer);
-            timer = setTimeout(() => {
-                handleLogout(true);
-            }, TIMEOUT_MS);
-        };
-
-        ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) =>
-            window.addEventListener(evt, reset)
-        );
-        reset();
-
-        return () => {
-            clearTimeout(timer);
-            ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) =>
-                window.removeEventListener(evt, reset)
-            );
-        };
-    }, [token]);
+    // Auto logout por inactividad (temporalmente desactivado para diagnóstico)
+    // useEffect(() => {
+    //   if (!token) return;
+    //   const TIMEOUT_MS = 30 * 60 * 1000;
+    //   let timer = null;
+    //
+    //   const reset = () => {
+    //     clearTimeout(timer);
+    //     timer = setTimeout(() => {
+    //       handleLogout(true);
+    //     }, TIMEOUT_MS);
+    //   };
+    //
+    //   ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) =>
+    //     window.addEventListener(evt, reset)
+    //   );
+    //   reset();
+    //
+    //   return () => {
+    //     clearTimeout(timer);
+    //     ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach((evt) =>
+    //       window.removeEventListener(evt, reset)
+    //     );
+    //   };
+    // }, [token]);
 
     const handleAuth = (newToken, userData, tokenType = 'Bearer') => {
         saveSession({
