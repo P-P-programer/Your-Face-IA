@@ -39,26 +39,43 @@ function App() {
     const [checking, setChecking] = useState(true);
 
     useEffect(() => {
-        const checkSession = async () => {
-            if (!token) {
-                setChecking(false);
-                return;
-            }
-            try {
-                const res = await fetch('/api/me', {
-                    headers: { Authorization: getAuthHeader() },
-                });
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-                setUser(data);
-            } catch {
-                clearSession();
-                setToken(null);
-                setUser(null);
-            } finally {
-                setChecking(false);
-            }
-        };
+        console.log('🔄 [useEffect] token cambió:', token ? token.substring(0, 20) + '...' : 'null');
+        if (token) {
+            window.axios.defaults.headers.common['Authorization'] = `${tokenType} ${token}`;
+            console.log('✅ [useEffect] Axios configurado');
+        } else {
+            delete window.axios.defaults.headers.common['Authorization'];
+            console.log('❌ [useEffect] Axios sin auth');
+        }
+    }, [token, tokenType]);
+
+    const checkSession = async () => {
+        console.log('🔍 [checkSession] Iniciando... token:', token ? 'existe' : 'null');
+        if (!token) {
+            setChecking(false);
+            return;
+        }
+        try {
+            console.log('📡 [checkSession] Llamando /api/me...');
+            const res = await fetch('/api/me', {
+                headers: { Authorization: getAuthHeader() },
+            });
+            console.log('📡 [checkSession] Respuesta /api/me:', res.status);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            console.log('✅ [checkSession] Usuario válido:', data.email);
+            setUser(data);
+        } catch (err) {
+            console.error('❌ [checkSession] Error:', err.message);
+            clearSession();
+            setToken(null);
+            setUser(null);
+        } finally {
+            setChecking(false);
+        }
+    };
+
+    useEffect(() => {
         checkSession();
     }, [token]);
 
