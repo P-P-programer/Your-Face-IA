@@ -1,14 +1,19 @@
 import axios from 'axios';
 import { clearSession, getAuthHeader } from './lib/session';
-// Configuración global de Axios para incluir token de autenticación y manejar expiración
+
 window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.headers.common['Accept'] = 'application/json';
 
-const authHeader = getAuthHeader();
-if (authHeader) {
-  window.axios.defaults.headers.common['Authorization'] = authHeader;
-  window.axios.defaults.headers.common['Accept'] = 'application/json';
-}
+// Configuración global de Axios para incluir token de autenticación y manejar expiración
+window.axios.interceptors.request.use((config) => {
+  const authHeader = getAuthHeader();
+  if (authHeader) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = authHeader;
+  }
+  return config;
+});
 
 window.axios.interceptors.response.use(
   (response) => response,
