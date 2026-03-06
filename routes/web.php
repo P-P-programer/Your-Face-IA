@@ -3,13 +3,30 @@
 use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+// Ruta de verificación de email
 Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
     ->name('verification.verify');
 
+// Servir sw.js con MIME correcto (ANTES del catch-all)
+Route::get('/sw.js', function () {
+    return response()->file(public_path('sw.js'), [
+        'Content-Type' => 'application/javascript; charset=utf-8',
+    ]);
+});
+
+// Servir manifest.json con MIME correcto
+Route::get('/manifest.json', function () {
+    return response()->file(public_path('manifest.json'), [
+        'Content-Type' => 'application/json; charset=utf-8',
+    ]);
+});
+
+// Ruta principal
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Catch-all para SPA (DEBE ir al final)
 Route::get('/{any}', function () {
-    return view('welcome'); // cambia 'app' por 'welcome'
+    return view('welcome');
 })->where('any', '.*');
