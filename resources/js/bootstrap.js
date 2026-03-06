@@ -10,21 +10,30 @@ window.axios.interceptors.request.use((config) => {
   if (authHeader) {
     config.headers = config.headers || {};
     config.headers.Authorization = authHeader;
+    console.log('[REQ]', config.method?.toUpperCase(), config.url, '| Auth:', authHeader.substring(0, 20) + '...');
+  } else {
+    console.log('[REQ]', config.method?.toUpperCase(), config.url, '| Sin Auth');
   }
   return config;
 });
 
 window.axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('[RES OK]', response.config.method?.toUpperCase(), response.config.url, '| Status:', response.status);
+    return response;
+  },
   (error) => {
     const status = error?.response?.status;
     const url = error?.config?.url || '(sin-url)';
+    const method = error?.config?.method?.toUpperCase() || 'GET';
     const hasToken = !!getToken();
 
-    if (status === 401) {
-      console.warn('[401]', { url, hasToken, path: window.location.pathname });
+    console.error('[RES ERR]', method, url, '| Status:', status, '| hasToken:', hasToken);
 
-      // Solo forzar logout si realmente había sesión
+    if (status === 401) {
+      console.warn('🚨 [401 DETECTED] Limpiando sesión y redirigiendo...');
+      
+      // Solo forzar logout si realmente había sesión y no estamos en login
       if (hasToken && window.location.pathname !== '/login') {
         clearSession();
         window.location.href = '/login?reason=expired';

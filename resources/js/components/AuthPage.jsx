@@ -28,25 +28,37 @@ export default function AuthPage({ onAuth }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setMessage('');
         setLoading(true);
 
+        const endpoint = mode === 'login' ? '/api/login' : '/api/register';
+
         try {
-            const res = await fetch('/api/login', {
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ email: form.email, password: form.password }),
+                body: JSON.stringify(form),
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data?.message || 'Credenciales inválidas');
+                setError(data?.message || 'Error en la solicitud');
                 return;
             }
 
+            // Si es registro exitoso
+            if (mode === 'register') {
+                setMessage('✅ Cuenta creada. Revisa tu email para verificarla.');
+                setForm({ name: '', email: '', password: '' });
+                setTimeout(() => setMode('login'), 3000);
+                return;
+            }
+
+            // Si es login exitoso
             const token = data?.access_token || data?.token;
             const tokenType = data?.token_type || 'Bearer';
             const user = data?.user;
@@ -56,13 +68,17 @@ export default function AuthPage({ onAuth }) {
                 return;
             }
 
+            console.log('✅ [LOGIN OK] Token:', token.substring(0, 20) + '...', '| User:', user.email, '| Role:', user.role);
+
             onAuth(token, user, tokenType);
 
-            // hard redirect para evitar quedarse “pegado” en login
+            console.log('🔄 [REDIRECT] Redirigiendo a dashboard...');
+
+            // Redirección forzada después del login
             window.location.href = user.role === 'super_admin'
                 ? '/admin/token-requests'
                 : '/';
-        } catch {
+        } catch (err) {
             setError('Error de red');
         } finally {
             setLoading(false);
