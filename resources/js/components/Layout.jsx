@@ -13,6 +13,7 @@ import {
     IconLogo
 } from './Icons';
 import ConfirmDialog from './ConfirmDialog';
+import { navItems } from '../config/navItems';
 
 export default function Layout({ children, deviceIp, onConnect, onDisconnect, onLogout, user }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -86,61 +87,22 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect, on
                     </div>
 
                     <nav className="nav">
-                        <Link 
-                            to="/" 
-                            className={`nav-item ${isActive('/') ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <IconHome />
-                            <span className="nav-text">Inicio</span>
-                        </Link>
-
-                        <Link 
-                            to="/devices" 
-                            className={`nav-item ${isActive('/devices') ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <IconStatus />
-                            <span className="nav-text">Mis Dispositivos</span>
-                        </Link>
-
-                        <Link 
-                            to="/connections" 
-                            className={`nav-item ${isActive('/connections') ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <IconHistory />
-                            <span className="nav-text">Mi Historial</span>
-                        </Link>
-
-                        {user?.role === 'superadmin' && (
-                            <Link 
-                                to="/admin/connections" 
-                                className={`nav-item ${isActive('/admin/connections') ? 'active' : ''}`}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <IconShield />
-                                <span className="nav-text">Auditoría Admin</span>
-                            </Link>
-                        )}
-
-                        {deviceIp && (
-                            <button 
-                                className="nav-item" 
-                                onClick={changeIp}
-                            >
-                                <IconChangeIp />
-                                <span className="nav-text">Cambiar IP</span>
-                            </button>
-                        )}
-
-                        <button 
-                            className="nav-item" 
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <IconSettings />
-                            <span className="nav-text">Configuración</span>
-                        </button>
+                        {navItems
+                            .filter((item) => item.roles.includes(user?.role))
+                            .map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.to}
+                                        to={item.to}
+                                        className={`nav-item ${isActive(item.to) ? 'active' : ''}`}
+                                        onClick={() => setSidebarOpen(false)}
+                                    >
+                                        {Icon && <Icon />}
+                                        <span className="nav-text">{item.label}</span>
+                                    </Link>
+                                );
+                            })}
                     </nav>
 
                     <div className="sidebar-bottom">

@@ -65,9 +65,16 @@ export default function AuthPage({ onAuth }) {
                 return;
             }
 
-            if (data?.token) {
-                onAuth(data.token, data.user);
+            const token = data?.access_token || data?.token;
+            const tokenType = data?.token_type || 'Bearer';
+            const user = data?.user;
+
+            if (!token || !user) {
+                setError('Respuesta de login inválida.');
+                return;
             }
+
+            onAuth(token, user, tokenType);
         } catch {
             setError('Error de red');
         } finally {

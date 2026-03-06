@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ApiToken extends Model
 {
@@ -12,27 +13,51 @@ class ApiToken extends Model
         'name',
         'token',
         'device_mac',
-        'last_used_at',
-        'expires_at',
+        'status',
+        'revoked_at',
+        'revoked_by',
     ];
 
     protected $casts = [
-        'last_used_at' => 'datetime',
-        'expires_at' => 'datetime',
+        'revoked_at' => 'datetime',
     ];
 
-    public static function generate($userId, $name, $deviceMac = null)
-    {
-        return self::create([
-            'user_id' => $userId,
-            'name' => $name,
-            'token' => Str::random(60),
-            'device_mac' => $deviceMac,
-        ]);
-    }
-
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function revokedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'revoked_by');
+    }
+
+    public function revocationRequests(): HasMany
+    {
+        return $this->hasMany(TokenRevocationRequest::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeRevoked($query)
+    {
+        return $query->where('status', 'revoked');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function revoke(int $revokedBy): void
+    {
+        $this->update([
+            'status' => 'revoked',
+            'revoked_at' => now(),
+            'revoked_by' => $revokedBy,
+        ]);
     }
 }

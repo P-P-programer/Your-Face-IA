@@ -56,9 +56,9 @@ class AuthController extends Controller
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciales inválidas.'],
-            ]);
+            return response()->json([
+                'message' => 'Credenciales inválidas.',
+            ], 401);
         }
 
         if ($user->status !== 'active') {
@@ -94,11 +94,20 @@ class AuthController extends Controller
             'status' => 'active',
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $plainTextToken = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'token' => $token,
-            'user' => $user,
+            'message' => 'Login exitoso',
+            'token_type' => 'Bearer',
+            'access_token' => $plainTextToken,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'status' => $user->status,
+                'email_verified_at' => $user->email_verified_at,
+            ],
         ]);
     }
 
@@ -112,7 +121,10 @@ class AuthController extends Controller
                 'status' => 'disconnected',
             ]);
 
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'Sesión cerrada.',
