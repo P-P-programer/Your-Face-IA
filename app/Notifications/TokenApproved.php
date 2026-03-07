@@ -2,15 +2,11 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TokenApproved extends Notification implements ShouldQueue
+class TokenApproved extends Notification
 {
-    use Queueable;
-
     public function __construct(
         public string $token,
         public string $deviceName
@@ -31,7 +27,7 @@ class TokenApproved extends Notification implements ShouldQueue
             ->line("Tu solicitud para {$this->deviceName} fue aprobada.")
             ->line("Token: {$this->token}")
             ->line('Guárdalo. Se muestra solo una vez.')
-            ->action('Ir al dashboard', url('/dashboard'));
+            ->action('Ir al dashboard', url('/'));
     }
 
     public function toArray(object $notifiable): array
