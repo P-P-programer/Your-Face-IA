@@ -10,7 +10,7 @@ export default function AdminTokenRequestsPage() {
   const load = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/admin/device-token-requests?status=${status}`, {
+      const { data } = await axios.get(`/api/admin/token-requests?status=${status}`, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       setItems(data?.data || []);
@@ -24,7 +24,7 @@ export default function AdminTokenRequestsPage() {
     if (admin_notes === null) return;
 
     try {
-      await axios.post(`/api/admin/device-token-requests/${id}/approve`, { admin_notes }, {
+      await axios.post(`/api/admin/token-requests/${id}/approve`, { admin_notes }, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       await load();
@@ -39,7 +39,7 @@ export default function AdminTokenRequestsPage() {
     if (!admin_notes) return;
 
     try {
-      await axios.post(`/api/admin/device-token-requests/${id}/reject`, { admin_notes }, {
+      await axios.post(`/api/admin/token-requests/${id}/reject`, { admin_notes }, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       await load();

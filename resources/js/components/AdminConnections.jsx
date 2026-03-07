@@ -21,7 +21,7 @@ export default function AdminConnections() {
                 return;
             }
 
-            const res = await fetch('/api/connections/all', {
+            const res = await fetch('/api/admin/connections', {
                 headers: {
                     Authorization: authHeader,
                     Accept: 'application/json',
