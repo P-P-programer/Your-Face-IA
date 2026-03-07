@@ -23,15 +23,38 @@ jobs:
             cd /home/u633781435/domains/your-face-ia.site/laravel
             git pull origin main
             rm -f public/hot ../public_html/hot
-            composer install --no-dev --optimize-autoload
-            npm ci
-            npm run build
+            composer install --no-dev --classmap-authoritative
             php artisan migrate --force
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            cp -r public/build/* ../public_html/build/
-            # opcional: desactivar PWA en producción por ahora
-            rm -f ../public_html/sw.js ../public_html/manifest.json
-            echo "✅ Deploy completado"
+            echo "✅ Deploy backend completado (sin build frontend - hazlo local)"
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+      
+      - name: Upload to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_DEPLOY_PRIVATE_KEY }}
+          source: "public/build/*"
+          target: "/home/u633781435/domains/your-face-ia.site/laravel/"
+          strip_components: 0
