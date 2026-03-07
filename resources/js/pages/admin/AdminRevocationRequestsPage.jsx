@@ -9,7 +9,7 @@ export default function AdminRevocationRequestsPage() {
   const load = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get("/api/admin/token-revocation-requests?status=pending", {
+      const { data } = await axios.get("/api/admin/revocation-requests?status=pending", {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       setItems(data?.data || []);
@@ -23,7 +23,7 @@ export default function AdminRevocationRequestsPage() {
     if (admin_notes === null) return;
 
     try {
-      await axios.post(`/api/admin/token-revocation-requests/${id}/approve`, { admin_notes }, {
+      await axios.post(`/api/admin/revocation-requests/${id}/approve`, { admin_notes }, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       await load();
@@ -38,7 +38,7 @@ export default function AdminRevocationRequestsPage() {
     if (!admin_notes) return;
 
     try {
-      await axios.post(`/api/admin/token-revocation-requests/${id}/reject`, { admin_notes }, {
+      await axios.post(`/api/admin/revocation-requests/${id}/reject`, { admin_notes }, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
       await load();

@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // Solo super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(function () {
     Route::get('/connections', [ConnectionController::class, 'allConnections']);
+    Route::post('/connections/{connectionId}/disconnect', [ConnectionController::class, 'disconnectDevice']);
 
     Route::get('/token-requests', [DeviceTokenRequestController::class, 'index']);
     Route::post('/token-requests/{tokenRequest}/approve', [DeviceTokenRequestController::class, 'approve']);
