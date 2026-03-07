@@ -55,9 +55,12 @@ export default function AdminConnections() {
         if (!confirm('¿Desconectar este dispositivo?')) return;
 
         try {
-            const res = await fetch(`/api/connections/${connectionId}/disconnect`, {
+            const res = await fetch(`/api/admin/connections/${connectionId}/disconnect`, {
                 method: 'POST',
-                headers: { Authorization: getAuthHeader() },
+                headers: { 
+                    Authorization: getAuthHeader(),
+                    Accept: 'application/json',
+                },
             });
             
             if (res.ok) {
