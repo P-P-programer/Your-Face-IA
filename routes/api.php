@@ -1,28 +1,28 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DetectionController;
 use App\Http\Controllers\DeviceController;
-use App\Http\Controllers\VerifyEmailApiController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeviceTokenRequestController;
 use App\Http\Controllers\TokenRevocationController;
 
-Route::post('/register', [AuthController::class, 'register']);
+// Públicas
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/verify-email/{id}/{hash}', [VerifyEmailApiController::class, 'verify']);
+Route::post('/register', [AuthController::class, 'register']);
 
-// ESP32 CON TOKEN (sin middleware auth)
+// ESP32 (token de dispositivo)
 Route::middleware('api.token')->group(function () {
     Route::post('/devices/register', [DeviceController::class, 'register']);
     Route::post('/devices/heartbeat', [DeviceController::class, 'heartbeat']);
+    Route::post('/device/detect', [DetectionController::class, 'detect']);
 });
 
-// USUARIO AUTENTICADO
+// Usuario autenticado (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/connections', [ConnectionController::class, 'myConnections']);
     Route::get('/connections/user/{userId}', [ConnectionController::class, 'userConnections']);
@@ -30,35 +30,31 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/devices', [DeviceController::class, 'myDevices']);
     Route::post('/devices/{deviceId}/disconnect', [DeviceController::class, 'disconnect']);
-    Route::get('/devices/all', [DeviceController::class, 'allDevices']);
 
     Route::get('/detections', [DetectionController::class, 'myDetections']);
     Route::get('/detections/recent', [DetectionController::class, 'recentDetections']);
-    Route::get('/detections/all', [DetectionController::class, 'allDetections']);
     Route::post('/detections/demo', [DetectionController::class, 'demoDetection']);
 
     // Solicitudes de token
     Route::post('/device-tokens/request', [DeviceTokenRequestController::class, 'store']);
     Route::get('/device-tokens/my-requests', [DeviceTokenRequestController::class, 'myRequests']);
 
-    // Solicitudes de revocación
     Route::post('/tokens/revoke-request', [TokenRevocationController::class, 'store']);
     Route::get('/tokens/my-revocation-requests', [TokenRevocationController::class, 'myRequests']);
+
+    // Compat route que ya usas en frontend
+    Route::middleware('role:user,super_admin')->post('/tokens/request', [DeviceTokenRequestController::class, 'store']);
 });
 
-// SUPER ADMIN ONLY
-Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-    Route::get('/connections/all', [ConnectionController::class, 'allConnections']);
+// Solo super admin
+Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(function () {
+    Route::get('/connections', [ConnectionController::class, 'allConnections']);
 
-    Route::prefix('admin')->group(function () {
-        // Gestión de solicitudes de token
-        Route::get('/device-token-requests', [DeviceTokenRequestController::class, 'index']);
-        Route::post('/device-token-requests/{tokenRequest}/approve', [DeviceTokenRequestController::class, 'approve']);
-        Route::post('/device-token-requests/{tokenRequest}/reject', [DeviceTokenRequestController::class, 'reject']);
+    Route::get('/token-requests', [DeviceTokenRequestController::class, 'index']);
+    Route::post('/token-requests/{tokenRequest}/approve', [DeviceTokenRequestController::class, 'approve']);
+    Route::post('/token-requests/{tokenRequest}/reject', [DeviceTokenRequestController::class, 'reject']);
 
-        // Gestión de revocaciones
-        Route::get('/token-revocation-requests', [TokenRevocationController::class, 'index']);
-        Route::post('/token-revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
-        Route::post('/token-revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
-    });
+    Route::get('/revocation-requests', [TokenRevocationController::class, 'index']);
+    Route::post('/revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
+    Route::post('/revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
 });
