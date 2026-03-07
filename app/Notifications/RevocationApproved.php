@@ -2,15 +2,11 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class RevocationApproved extends Notification implements ShouldQueue
+class RevocationApproved extends Notification
 {
-    use Queueable;
-
     public function __construct(public string $deviceName, public ?string $notes = null) {}
 
     public function via(object $notifiable): array
@@ -24,7 +20,7 @@ class RevocationApproved extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
-            ->subject(' Revocación aprobada')
+            ->subject('Revocación aprobada')
             ->line("Se revocó el token del dispositivo {$this->deviceName}.");
         if ($this->notes) $mail->line("Notas: {$this->notes}");
         return $mail;
