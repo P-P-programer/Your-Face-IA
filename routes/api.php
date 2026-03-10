@@ -7,6 +7,7 @@ use App\Http\Controllers\DetectionController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceTokenRequestController;
 use App\Http\Controllers\TokenRevocationController;
+use App\Http\Controllers\VerifyEmailController;
 
 // Públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -59,3 +60,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(
     Route::post('/revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
     Route::post('/revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
 });
+
+// Verificación de email (pública)
+Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+    ->name('verification.verify');

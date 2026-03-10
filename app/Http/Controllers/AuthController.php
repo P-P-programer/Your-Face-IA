@@ -39,10 +39,16 @@ class AuthController extends Controller
             'reason' => 'Registro inicial',
         ]);
 
+        // Envía notificación de verificación DIRECTAMENTE (sin queue)
         $user->sendEmailVerificationNotification();
 
         return response()->json([
             'message' => 'Registro exitoso. Revisa tu email para verificar.',
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'name' => $user->name,
+            ],
         ], 201);
     }
 

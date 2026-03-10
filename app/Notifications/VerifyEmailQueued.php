@@ -3,16 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Bus\Queueable;
 
-class VerifyEmailQueued extends VerifyEmail implements ShouldQueue
+class VerifyEmailQueued extends VerifyEmail
 {
-    use Queueable;
-
-    public function __construct()
-    {
-        $this->onConnection('database');
-        $this->onQueue('default');
-    }
+    // Sin ShouldQueue - se envía DIRECTAMENTE
+    // Respeta el MAIL_MAILER del .env actual
 }
