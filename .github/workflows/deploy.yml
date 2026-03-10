@@ -29,7 +29,7 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            echo "✅ Deploy backend completado (sin build frontend - hazlo local)"
+            echo "✅ Deploy backend completado"
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -56,5 +56,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_DEPLOY_PRIVATE_KEY }}
           source: "public/build/*"
-          target: "/home/u633781435/domains/your-face-ia.site/laravel/"
-          strip_components: 0
+          target: "/home/u633781435/domains/your-face-ia.site/laravel/public/build/"
+          strip_components: 2
