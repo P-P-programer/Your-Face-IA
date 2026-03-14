@@ -63,6 +63,17 @@ class TokenRevocationController extends Controller
         return response()->json($requests);
     }
 
+    // Usuario ve sus tokens (aprobados + revocados)
+    public function myTokens()
+    {
+        $tokens = ApiToken::where('user_id', auth()->id())
+            ->select(['id', 'name', 'status', 'revoked_at', 'created_at'])
+            ->latest()
+            ->get();
+
+        return response()->json($tokens);
+    }
+
     // Admin lista solicitudes (middleware ya valida super_admin)
     public function index(Request $request)
     {

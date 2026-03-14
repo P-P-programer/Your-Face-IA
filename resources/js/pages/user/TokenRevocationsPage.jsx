@@ -18,7 +18,7 @@ export default function TokenRevocationsPage() {
       setLoading(true);
 
       const [devicesRes, reqRes] = await Promise.all([
-        axios.get("/api/devices", {
+        axios.get("/api/tokens/my-tokens", {
           headers: { Authorization: getAuthHeader(), Accept: "application/json" },
         }),
         axios.get("/api/tokens/my-revocation-requests", {

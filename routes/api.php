@@ -43,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tokens/revoke-request', [TokenRevocationController::class, 'store']);
     Route::get('/tokens/my-revocation-requests', [TokenRevocationController::class, 'myRequests']);
 
+    Route::get('/tokens/my-tokens', [TokenRevocationController::class, 'myTokens']);
+
     // Compat route que ya usas en frontend
     Route::middleware('role:user,super_admin')->post('/tokens/request', [DeviceTokenRequestController::class, 'store']);
 });
