@@ -7,13 +7,23 @@ export default function AdminTokenRequestsPage() {
   const [status, setStatus] = useState("pending");
   const [loading, setLoading] = useState(false);
 
+  const normalizeRows = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  };
+
   const load = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/admin/token-requests?status=${status}`, {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
-      setItems(data?.data || []);
+      setItems(normalizeRows(data));
+    } catch (err) {
+      console.error("Admin token-requests error:", err?.response?.status, err?.response?.data);
+      setItems([]);
+      alert(err?.response?.data?.message || "No se pudieron cargar las solicitudes");
     } finally {
       setLoading(false);
     }
