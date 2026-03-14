@@ -6,13 +6,23 @@ export default function AdminRevocationRequestsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const normalizeRows = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  };
+
   const load = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get("/api/admin/revocation-requests?status=pending", {
         headers: { Authorization: getAuthHeader(), Accept: "application/json" },
       });
-      setItems(data?.data || []);
+      setItems(normalizeRows(data));
+    } catch (err) {
+      console.error("Admin revocation-requests error:", err?.response?.status, err?.response?.data);
+      setItems([]);
+      alert(err?.response?.data?.message || "No se pudieron cargar las revocaciones");
     } finally {
       setLoading(false);
     }

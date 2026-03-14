@@ -59,7 +59,23 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect, on
         });
     };
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (to) => {
+        const [path, query] = to.split('?');
+
+        if (location.pathname !== path) return false;
+        if (!query) return true;
+
+        const current = new URLSearchParams(location.search);
+        const target = new URLSearchParams(query);
+
+        for (const [k, v] of target.entries()) {
+            if (current.get(k) !== v) return false;
+        }
+
+        return true;
+    };
+
+    const normalizeRole = (r = "") => String(r).trim().toLowerCase().replace(/-/g, "_");
 
     return (
         <div className="app-shell">
@@ -88,7 +104,9 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect, on
 
                     <nav className="nav">
                         {navItems
-                            .filter((item) => item.roles.includes(user?.role))
+                            .filter((item) =>
+                                item.roles.map(normalizeRole).includes(normalizeRole(user?.role))
+                            )
                             .map((item) => {
                                 const Icon = item.icon;
                                 return (

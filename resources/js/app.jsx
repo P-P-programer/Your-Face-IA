@@ -14,6 +14,7 @@ import '../css/app.css';
 import RequestEsp32TokenPage from "./pages/user/RequestEsp32TokenPage";
 import AdminTokenRequestsPage from "./pages/admin/AdminTokenRequestsPage";
 import AdminRevocationRequestsPage from "./pages/admin/AdminRevocationRequestsPage";
+import TokenRevocationsPage from "./pages/user/TokenRevocationsPage";
 import RequireRole from "./components/guards/RequireRole";
 import ForbiddenPage from "./pages/ForbiddenPage";
 import { clearSession, getAuthHeader, getToken, getUser, saveSession } from './lib/session';
@@ -161,12 +162,16 @@ function App() {
                                     } />
                                     <Route path="/connections" element={<ConnectionsList user={user} />} />
                                     <Route path="/devices" element={<DevicesList user={user} />} />
-                                    {user.role === 'super_admin' && (
-                                        <Route path="/admin/connections" element={<AdminConnections />} />
-                                    )}
+
                                     <Route path="/tokens/request" element={<RequestEsp32TokenPage />} />
-                                    <Route path="/admin/token-requests" element={<AdminTokenRequestsPage />} />
-                                    <Route path="/admin/revocation-requests" element={<AdminRevocationRequestsPage />} />
+                                    <Route path="/tokens/revocations" element={<TokenRevocationsPage />} />
+
+                                    {/* Admin */}
+                                    <Route element={<RequireRole roles={['super_admin']} />}>
+                                        <Route path="/admin/connections" element={<AdminConnections />} />
+                                        <Route path="/admin/token-requests" element={<AdminTokenRequestsPage />} />
+                                        <Route path="/admin/revocation-requests" element={<AdminRevocationRequestsPage />} />
+                                    </Route>
                                 </Routes>
                             </Layout>
                         }
