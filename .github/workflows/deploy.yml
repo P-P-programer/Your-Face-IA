@@ -40,7 +40,7 @@ jobs:
       
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       
       - name: Build assets
@@ -58,3 +58,18 @@ jobs:
           source: "public/build/*"
           target: "/home/u633781435/domains/your-face-ia.site/laravel/public/build/"
           strip_components: 2
+
+      - name: Sync build to public_html
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_DEPLOY_PRIVATE_KEY }}
+          timeout: 60s
+          command_timeout: 20m
+          script: |
+            mkdir -p /home/u633781435/domains/your-face-ia.site/public_html/build
+            rm -rf /home/u633781435/domains/your-face-ia.site/public_html/build/*
+            cp -a /home/u633781435/domains/your-face-ia.site/laravel/public/build/. /home/u633781435/domains/your-face-ia.site/public_html/build/
+            echo "Build sincronizado en public_html/build"
