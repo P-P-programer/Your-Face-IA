@@ -18,6 +18,8 @@ class DeviceRegistration extends Model
         'disconnected_at',
         'last_heartbeat',
         'metadata',
+        'stream_url',
+        'snapshot_url',
     ];
 
     protected $casts = [

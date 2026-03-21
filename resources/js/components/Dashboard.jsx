@@ -8,6 +8,7 @@ export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [streamFailed, setStreamFailed] = useState(false);
 
     const selectedDevice = useMemo(
         () => devices.find((d) => d.id === selectedDeviceId) || null,
@@ -96,7 +97,14 @@ export default function Dashboard() {
         });
     }, [selectedDeviceId, devices.length]);
 
+    useEffect(() => {
+        setStreamFailed(false);
+    }, [selectedDeviceId]);
+
     const latestDetection = detections[0] ?? null;
+
+    const liveStreamUrl = selectedDevice?.stream_url ?? null;
+    const fallbackImage = latestDetection?.image_path || selectedDevice?.snapshot_url || null;
 
     if (loading) {
         return <div className="panel">Cargando dashboard de cámara...</div>;
@@ -126,10 +134,17 @@ export default function Dashboard() {
                 )}
 
                 <div className="capture" style={{ minHeight: 260, display: 'grid', placeItems: 'center' }}>
-                    {latestDetection?.image_path ? (
+                    {isOnline && liveStreamUrl && !streamFailed ? (
                         <img
-                            src={latestDetection.image_path}
-                            alt="Última captura detectada"
+                            src={liveStreamUrl}
+                            alt="Stream en vivo ESP32-CAM"
+                            style={{ width: '100%', borderRadius: 12 }}
+                            onError={() => setStreamFailed(true)}
+                        />
+                    ) : fallbackImage ? (
+                        <img
+                            src={fallbackImage}
+                            alt="Última captura disponible"
                             style={{ width: '100%', borderRadius: 12 }}
                         />
                     ) : (
@@ -149,7 +164,11 @@ export default function Dashboard() {
                 </div>
                 <div className="card">
                     <div className="card-label">Estado</div>
-                    <div className="card-value">{isOnline ? 'Online' : 'Offline'}</div>
+                    <div className="card-value">
+                        {isOnline
+                            ? (liveStreamUrl && !streamFailed ? 'Online (stream)' : 'Online (sin stream)')
+                            : 'Offline'}
+                    </div>
                 </div>
                 <div className="card">
                     <div className="card-label">Detecciones hoy</div>
@@ -164,6 +183,14 @@ export default function Dashboard() {
                     </div>
                 </div>
             </aside>
+
+            {liveStreamUrl && streamFailed && (
+                <section className="panel" style={{ marginTop: 12 }}>
+                    <p style={{ margin: 0, color: '#f59e0b' }}>
+                        Stream no disponible temporalmente. Mostrando última captura.
+                    </p>
+                </section>
+            )}
         </div>
     );
 }

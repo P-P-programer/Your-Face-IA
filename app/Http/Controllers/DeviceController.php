@@ -17,6 +17,8 @@ class DeviceController extends Controller
                 'device_mac' => ['required', 'string', 'max:17'],
                 'model' => ['nullable', 'string', 'max:50'],
                 'signal_strength' => ['nullable', 'integer', 'min:-100', 'max:0'],
+                'stream_url' => ['nullable', 'url', 'max:500'],
+                'snapshot_url' => ['nullable', 'url', 'max:500'],
             ]);
 
             $userId = (int) $request->user_id;
@@ -47,6 +49,8 @@ class DeviceController extends Controller
                 [
                     'device_name' => $data['device_name'],
                     'device_ip' => $data['device_ip'],
+                    'stream_url' => $data['stream_url'] ?? null,
+                    'snapshot_url' => $data['snapshot_url'] ?? null,
                     'model' => $data['model'] ?? 'Unknown',
                     'status' => 'active',
                     'signal_strength' => $data['signal_strength'] ?? null,
@@ -76,6 +80,8 @@ class DeviceController extends Controller
                 'device_mac' => ['required', 'string', 'max:17'],
                 'device_ip' => ['required', 'ip'],
                 'signal_strength' => ['nullable', 'integer'],
+                'stream_url' => ['nullable', 'url', 'max:500'],
+                'snapshot_url' => ['nullable', 'url', 'max:500'],
             ]);
 
             $userId = (int) $request->user_id;
@@ -106,6 +112,8 @@ class DeviceController extends Controller
 
             $device->update([
                 'device_ip' => $data['device_ip'],
+                'stream_url' => $data['stream_url'] ?? $device->stream_url,
+                'snapshot_url' => $data['snapshot_url'] ?? $device->snapshot_url,
                 'signal_strength' => $data['signal_strength'] ?? null,
                 'last_heartbeat' => now(),
                 'status' => 'active',
