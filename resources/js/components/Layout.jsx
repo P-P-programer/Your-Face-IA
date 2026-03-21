@@ -1,50 +1,17 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-    IconSettings, 
-    IconChangeIp, 
-    IconDisconnect, 
-    IconStatus, 
     IconMenu,
-    IconHome,
-    IconHistory,
-    IconShield,
     IconLogout,
     IconLogo
 } from './Icons';
 import ConfirmDialog from './ConfirmDialog';
 import { navItems } from '../config/navItems';
 
-export default function Layout({ children, deviceIp, onConnect, onDisconnect, onLogout, user }) {
+export default function Layout({ children, onLogout, user }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState(null);
     const location = useLocation();
-
-    const disconnect = () => {
-        setConfirmDialog({
-            title: 'Desconectar dispositivo',
-            message: '¿Estás seguro de desconectar el dispositivo ESP32-CAM?',
-            onConfirm: () => {
-                onDisconnect();
-                setSidebarOpen(false);
-                setConfirmDialog(null);
-            },
-            onCancel: () => setConfirmDialog(null),
-        });
-    };
-
-    const changeIp = () => {
-        setConfirmDialog({
-            title: 'Cambiar IP',
-            message: '¿Cambiar la IP del dispositivo ESP32-CAM?',
-            onConfirm: () => {
-                onConnect('');
-                setSidebarOpen(false);
-                setConfirmDialog(null);
-            },
-            onCancel: () => setConfirmDialog(null),
-        });
-    };
 
     const logout = () => {
         setConfirmDialog({
@@ -124,18 +91,6 @@ export default function Layout({ children, deviceIp, onConnect, onDisconnect, on
                     </nav>
 
                     <div className="sidebar-bottom">
-                        {deviceIp && (
-                            <div className="nav-item">
-                                <IconStatus />
-                                <span className="nav-text">ESP32-CAM • {deviceIp}</span>
-                            </div>
-                        )}
-                        {deviceIp && (
-                            <button className="nav-item danger" onClick={disconnect}>
-                                <IconDisconnect />
-                                <span className="nav-text">Desconectar</span>
-                            </button>
-                        )}
                         {onLogout && (
                             <button className="nav-item" onClick={logout}>
                                 <IconLogout />

@@ -7,7 +7,6 @@ use App\Http\Controllers\DetectionController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceTokenRequestController;
 use App\Http\Controllers\TokenRevocationController;
-use App\Http\Controllers\VerifyEmailController;
 
 // Públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -17,6 +16,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('api.token')->group(function () {
     Route::post('/devices/register', [DeviceController::class, 'register']);
     Route::post('/devices/heartbeat', [DeviceController::class, 'heartbeat']);
+    Route::post('/devices/detections', [DetectionController::class, 'store']);
 });
 
 // Usuario autenticado (Sanctum)
