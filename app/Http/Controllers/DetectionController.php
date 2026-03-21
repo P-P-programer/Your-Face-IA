@@ -71,7 +71,7 @@ class DetectionController extends Controller
     // Superadmin: todas las detecciones
     public function allDetections(Request $request)
     {
-        if ($request->user()->role !== 'superadmin') {
+        if ($request->user()->role !== 'super_admin') {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
