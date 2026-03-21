@@ -181,7 +181,11 @@ class DeviceController extends Controller
     // Devuelve enlaces de cámara
     public function cameraLinks(Request $request, DeviceRegistration $device)
     {
-        if ($device->user_id !== $request->user()->id) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+        if ($device->user_id !== $user->id) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 

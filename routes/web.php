@@ -33,11 +33,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Catch-all para SPA (DEBE ir al final)
-Route::get('/{any}', function () {
-    return view('welcome');
-})->where('any', '.*');
-
 // Ruta de streaming de cámara
 Route::get('/camera/stream/{device}', [CameraProxyController::class, 'stream'])
     ->middleware('signed')
@@ -47,3 +42,8 @@ Route::get('/camera/stream/{device}', [CameraProxyController::class, 'stream'])
 Route::get('/camera/snapshot/{device}', [CameraProxyController::class, 'snapshot'])
     ->middleware('signed')
     ->name('camera.snapshot');
+
+// Catch-all siempre al final
+Route::get('/{any}', function () {
+    return view('welcome');
+})->where('any', '.*');
