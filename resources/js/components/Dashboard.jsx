@@ -9,6 +9,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [streamFailed, setStreamFailed] = useState(false);
+    const [cameraLinks, setCameraLinks] = useState({ stream_url: null, snapshot_url: null });
 
     const selectedDevice = useMemo(
         () => devices.find((d) => d.id === selectedDeviceId) || null,
@@ -68,6 +69,25 @@ export default function Dashboard() {
         setStats(data?.stats ?? null);
     };
 
+    const loadCameraLinks = async (deviceId) => {
+        const res = await fetch(`/api/devices/${deviceId}/camera-links`, {
+            headers: {
+                Authorization: getAuthHeader(),
+                Accept: 'application/json',
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error('No se pudieron cargar los enlaces de cámara');
+        }
+
+        const json = await res.json();
+        setCameraLinks({
+            stream_url: json?.stream_url ?? null,
+            snapshot_url: json?.snapshot_url ?? null,
+        });
+    };
+
     const refresh = async () => {
         try {
             setError('');
@@ -99,12 +119,21 @@ export default function Dashboard() {
 
     useEffect(() => {
         setStreamFailed(false);
+
+        if (!selectedDeviceId) {
+            setCameraLinks({ stream_url: null, snapshot_url: null });
+            return;
+        }
+
+        loadCameraLinks(selectedDeviceId).catch(() => {
+            setCameraLinks({ stream_url: null, snapshot_url: null });
+        });
     }, [selectedDeviceId]);
 
     const latestDetection = detections[0] ?? null;
 
-    const liveStreamUrl = selectedDevice?.stream_url ?? null;
-    const fallbackImage = latestDetection?.image_path || selectedDevice?.snapshot_url || null;
+    const liveStreamUrl = cameraLinks.stream_url ?? null;
+    const fallbackImage = latestDetection?.image_path || cameraLinks.snapshot_url || null;
 
     if (loading) {
         return <div className="panel">Cargando dashboard de cámara...</div>;

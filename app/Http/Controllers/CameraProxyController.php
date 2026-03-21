@@ -1,0 +1,135 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\DeviceRegistration;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+
+class CameraProxyController extends Controller
+{
+    public function stream(Request $request, DeviceRegistration $device)
+    {
+        $target = $this->validatedCameraUrl(
+            $device->stream_url,
+            $device->device_ip,
+            ['/stream'],
+            [81, 80]
+        );
+
+        if (!$target) {
+            return response()->json(['message' => 'Stream no disponible'], 404);
+        }
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 10,
+                'ignore_errors' => true,
+                'header' => "User-Agent: YourFaceIA-Proxy\r\n",
+            ],
+        ]);
+
+        $in = @fopen($target, 'rb', false, $context);
+        if ($in === false) {
+            return response()->json(['message' => 'No se pudo abrir el stream'], 502);
+        }
+
+        $contentType = $this->extractContentType($http_response_header ?? [])
+            ?? 'multipart/x-mixed-replace; boundary=frame';
+
+        return response()->stream(function () use ($in) {
+            while (!feof($in)) {
+                echo fread($in, 8192);
+                @ob_flush();
+                flush();
+
+                if (connection_aborted()) {
+                    break;
+                }
+            }
+
+            fclose($in);
+        }, 200, [
+            'Content-Type' => $contentType,
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    public function snapshot(Request $request, DeviceRegistration $device)
+    {
+        $target = $this->validatedCameraUrl(
+            $device->snapshot_url,
+            $device->device_ip,
+            ['/capture'],
+            [80, 81]
+        );
+
+        if (!$target) {
+            return response()->json(['message' => 'Snapshot no disponible'], 404);
+        }
+
+        $resp = Http::timeout(8)
+            ->connectTimeout(4)
+            ->withHeaders(['User-Agent' => 'YourFaceIA-Proxy'])
+            ->get($target);
+
+        if (!$resp->successful()) {
+            return response()->json(['message' => 'No se pudo obtener snapshot'], 502);
+        }
+
+        return response($resp->body(), 200, [
+            'Content-Type' => $resp->header('Content-Type', 'image/jpeg'),
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
+    }
+
+    private function validatedCameraUrl(?string $url, string $deviceIp, array $allowedPaths, array $allowedPorts): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if (!$parts) {
+            return null;
+        }
+
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = $parts['host'] ?? '';
+        $path = $parts['path'] ?? '';
+        $port = (int) ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
+
+        if ($scheme !== 'http') {
+            return null;
+        }
+
+        if ($host !== $deviceIp) {
+            return null;
+        }
+
+        if (!in_array($port, $allowedPorts, true)) {
+            return null;
+        }
+
+        if (!in_array($path, $allowedPaths, true)) {
+            return null;
+        }
+
+        return $url;
+    }
+
+    private function extractContentType(array $headers): ?string
+    {
+        foreach ($headers as $line) {
+            if (stripos($line, 'Content-Type:') === 0) {
+                return trim(substr($line, strlen('Content-Type:')));
+            }
+        }
+
+        return null;
+    }
+}

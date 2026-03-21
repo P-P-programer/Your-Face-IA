@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DeviceRegistration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class DeviceController extends Controller
 {
@@ -175,5 +176,26 @@ class DeviceController extends Controller
             ->paginate(100);
 
         return response()->json($devices);
+    }
+
+    // Devuelve enlaces de cámara
+    public function cameraLinks(Request $request, DeviceRegistration $device)
+    {
+        if ($device->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        $ttl = max(30, (int) env('CAMERA_LINK_TTL_SECONDS', 120));
+        $expiresAt = now()->addSeconds($ttl);
+
+        return response()->json([
+            'stream_url' => $device->stream_url
+                ? URL::temporarySignedRoute('camera.stream', $expiresAt, ['device' => $device->id])
+                : null,
+            'snapshot_url' => $device->snapshot_url
+                ? URL::temporarySignedRoute('camera.snapshot', $expiresAt, ['device' => $device->id])
+                : null,
+            'expires_at' => $expiresAt->toIso8601String(),
+        ]);
     }
 }
