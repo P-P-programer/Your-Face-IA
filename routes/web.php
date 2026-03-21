@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CameraProxyController;
 use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,3 +37,13 @@ Route::get('/', function () {
 Route::get('/{any}', function () {
     return view('welcome');
 })->where('any', '.*');
+
+// Ruta de streaming de cámara
+Route::get('/camera/stream/{device}', [CameraProxyController::class, 'stream'])
+    ->middleware('signed')
+    ->name('camera.stream');
+
+// Ruta de snapshot de cámara
+Route::get('/camera/snapshot/{device}', [CameraProxyController::class, 'snapshot'])
+    ->middleware('signed')
+    ->name('camera.snapshot');

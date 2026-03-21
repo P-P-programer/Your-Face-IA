@@ -60,3 +60,5 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(
     Route::post('/revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
     Route::post('/revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
 });
+
+Route::get('/devices/{device}/camera-links', [DeviceController::class, 'cameraLinks']);
