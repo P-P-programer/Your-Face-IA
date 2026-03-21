@@ -16,10 +16,14 @@ class ApiToken extends Model
         'status',
         'revoked_at',
         'revoked_by',
+        'expires_at',
+        'last_used_at',
     ];
 
     protected $casts = [
         'revoked_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'last_used_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

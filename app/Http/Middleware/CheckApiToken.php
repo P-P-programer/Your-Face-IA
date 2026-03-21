@@ -11,15 +11,18 @@ class CheckApiToken
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->header('X-API-Token');
+        $plainToken = trim((string) $request->header('X-API-Token', ''));
 
-        if (!$token) {
+        if ($plainToken === '') {
             return response()->json([
                 'message' => 'Token requerido',
             ], 401);
         }
 
-        $apiToken = ApiToken::where('token', $token)->first();
+        // El token se guarda hasheado en BD, nunca en texto plano
+        $hashedToken = hash('sha256', $plainToken);
+
+        $apiToken = ApiToken::where('token', $hashedToken)->first();
 
         if (!$apiToken) {
             return response()->json([
@@ -27,20 +30,40 @@ class CheckApiToken
             ], 401);
         }
 
-        // Verificar si expiró
-        if ($apiToken->expires_at && $apiToken->expires_at->isPast()) {
+        // Solo tokens activos pueden autenticarse
+        if ($apiToken->status !== 'active') {
             return response()->json([
-                'message' => 'Token expirado',
+                'message' => 'Token inactivo',
             ], 401);
         }
 
-        // Guardar en request
+        // Si ya fue revocado explícitamente, no debe pasar
+        if (!is_null($apiToken->revoked_at)) {
+            return response()->json([
+                'message' => 'Token revocado',
+            ], 401);
+        }
+
+        // Verificar expiración (si existe fecha de expiración)
+        if (!is_null($apiToken->expires_at)) {
+            $expiresAt = $apiToken->expires_at instanceof \Carbon\CarbonInterface
+                ? $apiToken->expires_at
+                : now()->parse($apiToken->expires_at);
+
+            if ($expiresAt->isPast()) {
+                return response()->json([
+                    'message' => 'Token expirado',
+                ], 401);
+            }
+        }
+
+        // Guardar contexto en request para controladores
         $request->merge([
             'apiToken' => $apiToken,
             'user_id' => $apiToken->user_id,
         ]);
 
-        // Actualizar last_used_at
+        // Actualizar uso solo si autenticó correctamente
         $apiToken->update(['last_used_at' => now()]);
 
         return $next($request);

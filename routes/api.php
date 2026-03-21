@@ -17,7 +17,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('api.token')->group(function () {
     Route::post('/devices/register', [DeviceController::class, 'register']);
     Route::post('/devices/heartbeat', [DeviceController::class, 'heartbeat']);
-    Route::post('/device/detect', [DetectionController::class, 'detect']);
 });
 
 // Usuario autenticado (Sanctum)
@@ -34,7 +33,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/detections', [DetectionController::class, 'myDetections']);
     Route::get('/detections/recent', [DetectionController::class, 'recentDetections']);
-    Route::post('/detections/demo', [DetectionController::class, 'demoDetection']);
 
     // Solicitudes de token
     Route::post('/device-tokens/request', [DeviceTokenRequestController::class, 'store']);
@@ -62,7 +60,3 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(
     Route::post('/revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
     Route::post('/revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
 });
-
-// Verificación de email (pública)
-Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-    ->name('verification.verify');
