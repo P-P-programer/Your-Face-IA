@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import ConnectDevice from './components/ConnectDevice';
 import Dashboard from './components/Dashboard';
 import AuthPage from './components/AuthPage';
 import VerifyEmailPage from './components/VerifyEmailPage';
@@ -20,7 +19,6 @@ import ForbiddenPage from "./pages/ForbiddenPage";
 import { clearSession, getAuthHeader, getToken, getUser, saveSession } from './lib/session';
 
 function App() {
-    const [deviceIp, setDeviceIp] = useState('');
     const [token, setToken] = useState(() => getToken());
     const [user, setUser] = useState(() => getUser());
     const [tokenType, setTokenType] = useState(() => localStorage.getItem('token_type') || 'Bearer');
@@ -120,7 +118,6 @@ function App() {
         clearSession();
         setToken(null);
         setUser(null);
-        setDeviceIp('');
 
         // Fuerza limpieza de React Router + redirección dura
         window.history.replaceState(null, '', '/login');
@@ -146,20 +143,11 @@ function App() {
                         path="/*"
                         element={
                             <Layout
-                                deviceIp={deviceIp}
-                                onConnect={setDeviceIp}
-                                onDisconnect={() => setDeviceIp('')}
                                 onLogout={handleLogout}
                                 user={user}
                             >
                                 <Routes>
-                                    <Route path="/" element={
-                                        !deviceIp ? (
-                                            <ConnectDevice onConnect={setDeviceIp} />
-                                        ) : (
-                                            <Dashboard deviceIp={deviceIp} />
-                                        )
-                                    } />
+                                    <Route path="/" element={<Dashboard />} />
                                     <Route path="/connections" element={<ConnectionsList user={user} />} />
                                     <Route path="/devices" element={<DevicesList user={user} />} />
 

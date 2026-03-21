@@ -1,46 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export default function ConnectDevice({ onConnect }) {
-    const [ip, setIp] = useState('');
-    const [error, setError] = useState('');
-
-    const handleConnect = () => {
-        if (ip.trim() !== '') {
-            onConnect(ip);
-        } else {
-            setError('Ingresa una IP válida');
-        }
-    };
-
+export default function ConnectDevice() {
     return (
         <div className="panel">
-            <h2 className="panel-title">Enlazar dispositivo ESP32-CAM</h2>
-            <div className="form">
-                <label htmlFor="ip-input" className="input-label">
-                    IP del dispositivo
-                </label>
-                <input
-                    id="ip-input"
-                    className="input"
-                    type="text"
-                    placeholder="192.168.1.100"
-                    value={ip}
-                    onChange={e => {
-                        setIp(e.target.value);
-                        setError('');
-                    }}
-                    aria-invalid={error ? 'true' : 'false'}
-                    aria-describedby={error ? 'ip-error' : undefined}
-                />
-                <button className="button" onClick={handleConnect}>
-                    Conectar
-                </button>
-                {error && (
-                    <span id="ip-error" className="error" role="alert">
-                        {error}
-                    </span>
-                )}
-            </div>
+            <h2 className="panel-title">Conexión automática</h2>
+            <p>
+                La vinculación por IP manual fue retirada. Ahora los dispositivos ESP32 se conectan
+                mediante token aprobado y aparecen automáticamente en el dashboard.
+            </p>
         </div>
     );
 }
