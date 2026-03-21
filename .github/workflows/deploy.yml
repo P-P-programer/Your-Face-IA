@@ -22,6 +22,10 @@ jobs:
           cache: 'npm'
 
       - name: Build assets
+        env:
+          VITE_ENABLE_PWA: "true"
+          VITE_APP_ENV: "production"
+          VITE_SW_VERSION: ${{ github.sha }}
         run: |
           npm ci
           npm run build

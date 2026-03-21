@@ -11,6 +11,9 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
 Route::get('/sw.js', function () {
     return response()->file(public_path('sw.js'), [
         'Content-Type' => 'application/javascript; charset=utf-8',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
     ]);
 });
 
@@ -18,6 +21,9 @@ Route::get('/sw.js', function () {
 Route::get('/manifest.json', function () {
     return response()->file(public_path('manifest.json'), [
         'Content-Type' => 'application/json; charset=utf-8',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
     ]);
 });
 
