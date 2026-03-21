@@ -45,6 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Compat route que ya usas en frontend
     Route::middleware('role:user,super_admin')->post('/tokens/request', [DeviceTokenRequestController::class, 'store']);
+    
+    // Nueva ruta para obtener links de cámara
+     Route::get('/devices/{device}/camera-links', [DeviceController::class, 'cameraLinks']);
 });
 
 // Solo super admin
@@ -60,5 +63,3 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('admin')->group(
     Route::post('/revocation-requests/{revocationRequest}/approve', [TokenRevocationController::class, 'approve']);
     Route::post('/revocation-requests/{revocationRequest}/reject', [TokenRevocationController::class, 'reject']);
 });
-
-Route::get('/devices/{device}/camera-links', [DeviceController::class, 'cameraLinks']);

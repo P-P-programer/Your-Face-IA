@@ -81,7 +81,7 @@ class CameraProxyController extends Controller
         }
 
         return response($resp->body(), 200, [
-            'Content-Type' => $resp->header('Content-Type', 'image/jpeg'),
+            'Content-Type' => $resp->header('Content-Type') ?: 'image/jpeg',
             'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma' => 'no-cache',
         ]);
