@@ -189,27 +189,46 @@ function App() {
 const root = createRoot(document.getElementById('app'));
 root.render(<App />);
 
-//  Registrar Service Worker para PWA
+// Registrar Service Worker para PWA
 const PWA_ENABLED = String(import.meta.env.VITE_ENABLE_PWA || 'false') === 'true';
-const APP_ENV = import.meta.env.VITE_APP_ENV || import.meta.env.MODE; // local | production
+const APP_ENV = import.meta.env.VITE_APP_ENV || import.meta.env.MODE;
 const IS_PROD = import.meta.env.PROD;
+const SW_VERSION = String(import.meta.env.VITE_SW_VERSION || 'dev');
 
 console.info(`[APP] env=${APP_ENV} | mode=${import.meta.env.MODE} | prod=${IS_PROD}`);
-console.info(`[PWA] enabled=${PWA_ENABLED}`);
+console.info(`[PWA] enabled=${PWA_ENABLED} | swVersion=${SW_VERSION}`);
 
 if (PWA_ENABLED && IS_PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      console.info(`[PWA] Service Worker registrado en: ${reg.scope}`);
-    } catch (e) {
-      console.error('[PWA] Error registrando Service Worker:', e);
-    }
-  });
+    window.addEventListener('load', async () => {
+        try {
+            const reg = await navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(SW_VERSION)}`);
+            console.info(`[PWA] SW registrado en: ${reg.scope}`);
+
+            await reg.update();
+
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (!newWorker) return;
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                });
+            });
+
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                const flag = `sw-reloaded-${SW_VERSION}`;
+                if (!sessionStorage.getItem(flag)) {
+                    sessionStorage.setItem(flag, '1');
+                    window.location.reload();
+                }
+            });
+        } catch (e) {
+            console.error('[PWA] Error registrando SW:', e);
+        }
+    });
 } else {
-  console.warn(
-    `[PWA] Desactivado. Motivo -> enabled=${PWA_ENABLED}, prod=${IS_PROD}. ` +
-    `Si fue accidental, revisa VITE_ENABLE_PWA y VITE_APP_ENV.`
-  );
+    console.warn(`[PWA] Desactivado. Motivo -> enabled=${PWA_ENABLED}, prod=${IS_PROD}`);
 }
 
