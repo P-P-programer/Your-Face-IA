@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DeviceRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
+use Throwable;
 
 class CameraProxyController extends Controller
 {
@@ -71,20 +73,33 @@ class CameraProxyController extends Controller
             return response()->json(['message' => 'Snapshot no disponible'], 404);
         }
 
-        $resp = Http::timeout(8)
-            ->connectTimeout(4)
-            ->withHeaders(['User-Agent' => 'YourFaceIA-Proxy'])
-            ->get($target);
+        try {
+            $resp = Http::timeout(8)
+                ->connectTimeout(4)
+                ->withHeaders(['User-Agent' => 'YourFaceIA-Proxy'])
+                ->get($target);
 
-        if (!$resp->successful()) {
-            return response()->json(['message' => 'No se pudo obtener snapshot'], 502);
+            if (!$resp->successful()) {
+                return response()->json([
+                    'message' => 'No se pudo obtener snapshot',
+                    'status' => $resp->status(),
+                ], 502);
+            }
+
+            return response($resp->body(), 200, [
+                'Content-Type' => $resp->header('Content-Type') ?: 'image/jpeg',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+            ]);
+        } catch (ConnectionException $e) {
+            return response()->json([
+                'message' => 'No se pudo conectar al dispositivo (snapshot)',
+            ], 502);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'Error inesperado al obtener snapshot',
+            ], 502);
         }
-
-        return response($resp->body(), 200, [
-            'Content-Type' => $resp->header('Content-Type') ?: 'image/jpeg',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma' => 'no-cache',
-        ]);
     }
 
     private function validatedCameraUrl(?string $url, string $deviceIp, array $allowedPaths, array $allowedPorts): ?string

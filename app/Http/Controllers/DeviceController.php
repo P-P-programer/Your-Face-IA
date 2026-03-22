@@ -202,4 +202,16 @@ class DeviceController extends Controller
             'expires_at' => $expiresAt->toIso8601String(),
         ]);
     }
+
+    private function publicCameraUrl(?string $url)
+    {
+        if (!$url) return null;
+        // Detecta si la URL es local (IP privada)
+        if (preg_match('#^http://192\.168\.1\.\d+(:\d+)?(/stream|/capture)$#', $url, $m)) {
+            // Detecta si es stream o capture
+            $path = $m[2];
+            return "https://cam.your-face-ia.site$path";
+        }
+        return $url;
+    }
 }
