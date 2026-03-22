@@ -32,7 +32,6 @@ class DeviceController extends Controller
             $incomingMac = strtoupper(trim($data['device_mac']));
             $tokenMac = $apiToken->device_mac ? strtoupper(trim($apiToken->device_mac)) : null;
 
-            // Primer uso del token: queda ligado a este device_mac
             if (is_null($tokenMac)) {
                 $apiToken->update(['device_mac' => $incomingMac]);
             } elseif ($tokenMac !== $incomingMac) {
@@ -41,7 +40,10 @@ class DeviceController extends Controller
                 ], 403);
             }
 
-            // Aislamiento real por user_id + device_mac
+            // Reemplazo automático de URL local por pública
+            $data['stream_url'] = $this->publicCameraUrl($data['stream_url'] ?? null);
+            $data['snapshot_url'] = $this->publicCameraUrl($data['snapshot_url'] ?? null);
+
             $device = DeviceRegistration::updateOrCreate(
                 [
                     'user_id' => $userId,
@@ -111,10 +113,14 @@ class DeviceController extends Controller
                 ], 404);
             }
 
+            // Reemplazo automático de URL local por pública
+            $streamUrl = $this->publicCameraUrl($data['stream_url'] ?? $device->stream_url);
+            $snapshotUrl = $this->publicCameraUrl($data['snapshot_url'] ?? $device->snapshot_url);
+
             $device->update([
                 'device_ip' => $data['device_ip'],
-                'stream_url' => $data['stream_url'] ?? $device->stream_url,
-                'snapshot_url' => $data['snapshot_url'] ?? $device->snapshot_url,
+                'stream_url' => $streamUrl,
+                'snapshot_url' => $snapshotUrl,
                 'signal_strength' => $data['signal_strength'] ?? null,
                 'last_heartbeat' => now(),
                 'status' => 'active',
