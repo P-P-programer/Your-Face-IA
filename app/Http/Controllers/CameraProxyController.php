@@ -118,23 +118,27 @@ class CameraProxyController extends Controller
         $path = $parts['path'] ?? '';
         $port = (int) ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
 
-        if ($scheme !== 'http') {
-            return null;
+        // Caso 1: IP local (http)
+        if (
+            $scheme === 'http' &&
+            $host === $deviceIp &&
+            in_array($port, $allowedPorts, true) &&
+            in_array($path, $allowedPaths, true)
+        ) {
+            return $url;
         }
 
-        if ($host !== $deviceIp) {
-            return null;
+        // Caso 2: Dominio público (https)
+        if (
+            $scheme === 'https' &&
+            $host === 'cam.your-face-ia.site' &&
+            $port === 443 &&
+            in_array($path, $allowedPaths, true)
+        ) {
+            return $url;
         }
 
-        if (!in_array($port, $allowedPorts, true)) {
-            return null;
-        }
-
-        if (!in_array($path, $allowedPaths, true)) {
-            return null;
-        }
-
-        return $url;
+        return null;
     }
 
     private function extractContentType(array $headers): ?string
